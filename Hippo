@@ -1,0 +1,33 @@
+import pygame import os
+
+#Podstawowe wartości
+WIDTH, HEIGHT=1600,900#Szerokość, wysokość okna
+WIN=pygame.display.toggle_fullscreen
+WIN=pygame.display.set_mode((WIDTH,HEIGHT))
+pygame.display.set_caption("Hippo Drive")#Tytuł Gry
+
+WHITE=(255,255,255)#Kolor okna
+FPS=60#Kontroluje czas generowanego obrazu
+
+#Samochody
+car1=pygame.image.load('car1.png')
+
+#Widok okna
+def draw_window():
+    WIN.fill((WHITE))
+    WIN.blit(car1,(300,100))
+    pygame.display.update()
+#Główny skrypt
+def main():
+    clock=pygame.time.Clock()
+    run = True
+    while run:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                run=False
+        draw_window()
+    pygame.quit()
+    
+if __name__=="__main__":
+    main()
