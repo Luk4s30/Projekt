@@ -1,16 +1,17 @@
-import pygame import os
+import pygame
+import os
 
 #Podstawowe wartości
-WIDTH, HEIGHT=1600,900#Szerokość, wysokość okna
-WIN=pygame.display.toggle_fullscreen
+WIDTH, HEIGHT=1920,1080#Szerokość, wysokość okna
 WIN=pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Hippo Drive")#Tytuł Gry
 
 WHITE=(255,255,255)#Kolor okna
 FPS=60#Kontroluje czas generowanego obrazu
-
+car_width,car_height=85,169#Szerokość, wysokość samochodzika
 #Samochody
 car1=pygame.image.load('car1.png')
+car1=pygame.transform.rotate(pygame.transform.scale(car1,(car_width,car_height)),270)
 
 #Widok okna
 def draw_window():
@@ -31,3 +32,4 @@ def main():
     
 if __name__=="__main__":
     main()
+
