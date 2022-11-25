@@ -33,10 +33,12 @@ class Cars:
     def draw(self, win):
         blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
     def move_forward(self):
+        self.acceleration = 0.5
         self.vel=min(self.vel+self.acceleration, self.max_vel)
         self.move()
     def move_backward(self):
-        self.vel=min(self.vel-self.acceleration, self.max_vel)
+        self.acceleration = 0.1
+        self.vel=min(self.vel-self.acceleration,10,100)
         self.move()
     def move (self):
         radians = math.radians(self.angle)
