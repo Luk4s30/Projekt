@@ -1,34 +1,91 @@
 import pygame
-import os
-
-#Podstawowe wartości
-WIDTH, HEIGHT=1920,1080#Szerokość, wysokość okna
-WIN=pygame.display.set_mode((WIDTH,HEIGHT))
-pygame.display.set_caption("Hippo Drive")#Tytuł Gry
-
-WHITE=(255,255,255)#Kolor okna
-FPS=60#Kontroluje czas generowanego obrazu
-car_width,car_height=85,169#Szerokość, wysokość samochodzika
-#Samochody
-car1=pygame.image.load('car1.png')
-car1=pygame.transform.rotate(pygame.transform.scale(car1,(car_width,car_height)),270)
-
-#Widok okna
-def draw_window():
-    WIN.fill((WHITE))
-    WIN.blit(car1,(300,100))
+import time
+import math
+#=======================
+def scale_image(img, factor):
+    size = round(img.get_width()*factor), round(img.get_height()*factor)
+    return pygame.transform.scale(img,size)
+def draw(win, images, player_car):
+    for img, pos in images:
+        win.blit(img, pos)
+    player_car.draw(win)
     pygame.display.update()
-#Główny skrypt
-def main():
-    clock=pygame.time.Clock()
-    run = True
-    while run:
-        clock.tick(FPS)
-        for event in pygame.event.get():
-            if event.type==pygame.QUIT:
-                run=False
-        draw_window()
-    pygame.quit()
+def blit_rotate_center(win, image, top_left, angle):
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center = image.get_rect(topleft = top_left).center)
+    win.blit(rotated_image, new_rect.topleft)
+#=======================
+Car = scale_image(pygame.image.load("car1.png"),0.2)
+class Cars:
+    def __init__(self,max_vel,rotation_vel):
+        self.img = self.IMG
+        self.max_vel = max_vel
+        self.vel = 0
+        self.rotation_vel = rotation_vel
+        self.angle = 270
+        self.x, self.y = self.START_POS
+        self.acceleration = 0.5
+    def rotate(self, left=False, right=False):
+        if left:
+            self.angle += self.rotation_vel
+        elif right:
+            self.angle -= self.rotation_vel
+    def draw(self, win):
+        blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
+    def move_forward(self):
+        self.vel=min(self.vel+self.acceleration, self.max_vel)
+        self.move()
+    def move_backward(self):
+        self.vel=min(self.vel-self.acceleration, self.max_vel)
+        self.move()
+    def move (self):
+        radians = math.radians(self.angle)
+        vertical = math.cos(radians)*self.vel
+        horizontal = math.sin(radians)*self.vel
+        self.y-=vertical
+        self.x-=horizontal
+    def reduce_speed(self):
+        self.vel = max(self.vel - self.acceleration / 2,0)
+        self.move()
+class PlayerCar(Cars):
+    IMG = Car
+    START_POS = (800,680)
+#=======================
+Background = pygame.image.load("tor1.png")
+
+Width, Height = Background.get_width(), Background.get_height()
+WIN = pygame.display.set_mode((Width,Height))
+pygame.display.set_caption("Samochodziki")
+
+FPS=60
+run = True
+clock = pygame.time.Clock()
+images = [(Background,(0,0))]
+player_car=PlayerCar(30,6)
+
+while run:
+    clock.tick(FPS)
+
+    draw(WIN, images, player_car)
+   
     
-if __name__=="__main__":
-    main()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run=False
+            break
+    keys = pygame.key.get_pressed()
+    moved = False
+    if keys[pygame.K_a]:
+        player_car.rotate(left=True)
+    if keys[pygame.K_d]:
+        player_car.rotate(right=True)
+    if keys[pygame.K_w]:
+        moved = True
+        player_car.move_forward()
+    if keys[pygame.K_s]:
+        player_car.move_backward()
+
+    if not moved:
+        player_car.reduce_speed()
+        
+pygame.quit
