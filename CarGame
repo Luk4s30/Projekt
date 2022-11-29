@@ -14,6 +14,22 @@ def blit_rotate_center(win, image, top_left, angle):
     rotated_image = pygame.transform.rotate(image, angle)
     new_rect = rotated_image.get_rect(center = image.get_rect(topleft = top_left).center)
     win.blit(rotated_image, new_rect.topleft)
+def move(player_car):
+    keys = pygame.key.get_pressed()
+    moved = False
+    if keys[pygame.K_a]:
+        player_car.rotate(left=True)
+    if keys[pygame.K_d]:
+        player_car.rotate(right=True)
+    if keys[pygame.K_w]:
+        moved = True
+        player_car.move_forward()
+    if keys[pygame.K_s]:
+        moved = True
+        player_car.move_backward()
+
+    if not moved:
+        player_car.reduce_speed()
 #=======================
 Car = scale_image(pygame.image.load("car1.png"),0.2)
 class Cars:
@@ -33,12 +49,10 @@ class Cars:
     def draw(self, win):
         blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
     def move_forward(self):
-        self.acceleration = 0.5
         self.vel=min(self.vel+self.acceleration, self.max_vel)
         self.move()
     def move_backward(self):
-        self.acceleration = 0.1
-        self.vel=min(self.vel-self.acceleration,10,100)
+        self.vel=max(self.vel-self.acceleration, -self.max_vel/2)
         self.move()
     def move (self):
         radians = math.radians(self.angle)
@@ -49,45 +63,83 @@ class Cars:
     def reduce_speed(self):
         self.vel = max(self.vel - self.acceleration / 2,0)
         self.move()
+    def collide(self, mask):
+        car_mask = pygame.mask.from_surface(self.img)
+        offset = (int(self.x), int(self.y))
+        poi = mask.overlap(car_mask, offset)
+        return poi
+    def collision_obstacles(self):
+        self.vel = -self.vel/2
+        self.move()
 class PlayerCar(Cars):
-    IMG = Car
     START_POS = (800,680)
+    IMG = Car
+    
 #=======================
 Background = pygame.image.load("tor1.png")
+Background_Mask = pygame.mask.from_surface(Background)
+Background_Grass = pygame.image.load("tor2trawa.png")
+Background_Grass_Mask = pygame.mask.from_surface(Background_Grass)
+Background_Finish = pygame.image.load("tor2meta.png")
+Background_Finish_Mask = pygame.mask.from_surface(Background_Finish)
+Background_Obstacles = pygame.image.load("tor2przeszkody.png")
+Background_Obstacles_Mask = pygame.mask.from_surface(Background_Obstacles)
+Position=(0,0)
 
 Width, Height = Background.get_width(), Background.get_height()
 WIN = pygame.display.set_mode((Width,Height))
 pygame.display.set_caption("Samochodziki")
+step_1=False
+step_2=False
+step_3=False
+timer_download=True
+best_time=0
 
+records = open("rekordy.txt","a")
+records.close()
+records = open("rekordy.txt","r+")
+a=(records.read())
+print(a)
 FPS=60
 run = True
 clock = pygame.time.Clock()
-images = [(Background,(0,0))]
 player_car=PlayerCar(30,6)
 
 while run:
     clock.tick(FPS)
-
-    draw(WIN, images, player_car)
+    if timer_download:
+        timer=time.time()
+        timer_download=False
+    draw(WIN, [(Background,(0,0))], player_car)
    
-    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run=False
             break
-    keys = pygame.key.get_pressed()
-    moved = False
-    if keys[pygame.K_a]:
-        player_car.rotate(left=True)
-    if keys[pygame.K_d]:
-        player_car.rotate(right=True)
-    if keys[pygame.K_w]:
-        moved = True
-        player_car.move_forward()
-    if keys[pygame.K_s]:
-        player_car.move_backward()
+    move(player_car)
 
-    if not moved:
-        player_car.reduce_speed()
-        
+    if player_car.collide(Background_Obstacles_Mask) != None:
+        player_car.collision_obstacles() #kolizja_przeszkody
+    if player_car.collide(Background_Grass_Mask) != None:
+        if player_car.vel>10:
+            player_car.vel-=1 #spowolnienie_trawa
+    if player_car.x>1400 and player_car.x<1850 and player_car.y>450 and player_car.y<550:
+        step_1=True
+    if step_1 and player_car.x>950 and player_car.x<1050 and player_car.y>0 and player_car.y<450:
+        step_2=True
+    if step_2 and player_car.x>100 and player_car.x<500 and player_car.y>450 and player_car.y<550:
+        step_3=True
+    if step_3 and player_car.collide(Background_Finish_Mask) != None:
+        records = open("rekordy.txt","r+")
+        rekord=records.read()
+        records.close()
+        records = open("rekordy.txt","w")
+        if rekord=="" or float(rekord)>best_time:
+            records.write(str(round(time.time()-timer,5)))
+        records.close()
+        step_1=False
+        step_2=False
+        step_3=False
+        timer_download=True
 pygame.quit
+#punkty 3
