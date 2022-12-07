@@ -465,13 +465,21 @@ while run:
     if rekord1=="":
         rPlik = open("rekordy1.txt","w")
         rPlik.write(str(3600))
+    elif mapa==tor1_img:
+        old_time=rekord1
     if rekord2=="":
         rPlik = open("rekordy2.txt","w")
         rPlik.write(str(3600))
+    elif mapa==tor2_img:
+        old_time=rekord2
     if rekord3=="":
         rPlik = open("rekordy3.txt","w")
         rPlik.write(str(3600))
+    elif mapa==tor3_img:
+        old_time=rekord3
     rPlik.close()
+    timer=time.time()
+    print(old_time)
     while run2:
         
       clock.tick(FPS)
@@ -502,17 +510,16 @@ while run:
         player_car.collision()       
       if player_car.x>1400 and player_car.x<1850 and player_car.y>450 and player_car.y<550:
         step_1=True
-        print(1)
       if step_1 and player_car.x>950 and player_car.x<1050 and player_car.y>0 and player_car.y<600:
         step_2=True
-        print(2)
       if step_2 and player_car.x>100 and player_car.x<500 and player_car.y>450 and player_car.y<550:
         step_3=True
-        print(3)
       if step_3 and player_car.collide(Background_Finish_Mask) != None:
         if mapa == tor1_img:
           best_time=time.time()-timer
           if float(old_time)>best_time:
+            print(best_time)
+            print(old_time)
             rPlik = open("rekordy1.txt","w")
             rPlik.write(str(round(best_time,3)))
           old_time=best_time
